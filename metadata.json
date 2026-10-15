@@ -1,0 +1,6 @@
+{
+  "name": "LabourMaster",
+  "description": "Construction labour management & POS attendance tracker with worker & site master, address & ID tracking, wage calculations, persistent auto-recovery, and multi-format exports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
