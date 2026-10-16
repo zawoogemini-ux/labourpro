@@ -161,48 +161,6 @@ fun ClearSampleDialog(
                     }
                 }
 
-                // Option 3: Reload Sample Data
-                Card(
-                    onClick = { confirmActionType = "RELOAD_SAMPLE" },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)),
-                    modifier = Modifier.testTag("reload_sample_data_btn")
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = WagesGreenLight
-                        ) {
-                            Icon(
-                                Icons.Default.Restore,
-                                contentDescription = null,
-                                tint = WagesGreenDark,
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .size(22.dp)
-                            )
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = if (isMy) "နမူနာဒေတာများ ပြန်လည်ထည့်မည်" else "Reload Demo Sample Data",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            )
-                            Text(
-                                text = if (isMy) "စမ်းသပ်လေ့လာရန် နမူနာဒေတာများကို ပြန်လည်ထည့်သွင်းပါ" else "Populates demo sites, workers & attendance records",
-                                fontSize = 11.sp,
-                                color = Slate600
-                            )
-                        }
-                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Slate400)
-                    }
-                }
             }
         },
         confirmButton = {
@@ -278,17 +236,7 @@ fun ClearSampleDialog(
                                     onDismiss()
                                 }
                             }
-                            "RELOAD_SAMPLE" -> {
-                                viewModel.resetDataWithSamples {
-                                    Toast.makeText(
-                                        context,
-                                        if (isMy) "နမူနာဒေတာများ ပြန်လည်ထည့်သွင်းပြီးပါပြီ!" else "Demo sample data reloaded!",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    confirmActionType = null
-                                    onDismiss()
-                                }
-                            }
+
                         }
                     },
                     colors = ButtonDefaults.buttonColors(

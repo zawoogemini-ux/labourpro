@@ -93,7 +93,6 @@ fun ExportScreen(
 
     // UI View Mode: "table" (interactive table) or "raw" (raw code preview)
     var viewMode by remember { mutableStateOf("table") }
-    var showResetDialog by remember { mutableStateOf(false) }
 
     // Calendar for DatePickers
     val cal = remember { Calendar.getInstance() }
@@ -734,12 +733,7 @@ fun ExportScreen(
                         Text(LanguageManager.getString("action_copy"), fontSize = 12.sp)
                     }
 
-                    IconButton(
-                        onClick = { showResetDialog = true },
-                        modifier = Modifier.testTag("reset_sample_data_button")
-                    ) {
-                        Icon(Icons.Default.Restore, contentDescription = "Reset Samples", tint = SafetyOrange)
-                    }
+
                 }
             }
         }
@@ -958,40 +952,6 @@ fun ExportScreen(
         }
     }
 
-    // Reset Sample Data Confirmation Dialog
-    if (showResetDialog) {
-        AlertDialog(
-            onDismissRequest = { showResetDialog = false },
-            title = { Text(if (isMy) "နမူနာဒေတာ ပြန်လည်ယူမည်လား?" else "Restore Sample Construction Data?") },
-            text = {
-                Text(
-                    if (isMy) "လက်သမား၊ ပန်းရံ၊ အကူလုပ်သားများ၊ ဆောက်လုပ်ရေးဆိုဒ်များနှင့် နေ့စဉ်တက်ရောက်မှု၊ အချိန်ပို၊ ကြိုထုတ်ငွေ မှတ်တမ်းများကို နမူနာဒေတာဖြင့် ပြန်လည်ဖြည့်သွင်းပေးပါမည်။"
-                    else "This will populate realistic sample workers (Carpenters, Masons, Helpers), construction sites, and daily attendance logs with advances and overtime."
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.resetDataWithSamples()
-                        showResetDialog = false
-                        Toast.makeText(
-                            context,
-                            if (isMy) "နမူနာဒေတာများ ပြန်လည်ထည့်သွင်းပြီးပါပြီ!" else "Sample data restored!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = ConstructionGold)
-                ) {
-                    Text(if (isMy) "နမူနာ ပြန်လည်ယူမည်" else "Restore Samples", color = Slate900, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showResetDialog = false }) {
-                    Text(if (isMy) "မလုပ်တော့ပါ" else "Cancel")
-                }
-            }
-        )
-    }
 }
 
 // Helper composable for fixed width Text cells in custom tables

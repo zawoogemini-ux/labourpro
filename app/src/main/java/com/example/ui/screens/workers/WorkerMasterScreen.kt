@@ -100,62 +100,34 @@ fun WorkerMasterScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Persistent Vault Detected / Recovery Notification Banner
-            if (detectedVault != null) {
-                val vault = detectedVault!!
-                Surface(
-                    color = Color(0xFFFEF3C7), // warm amber notice
-                    tonalElevation = 2.dp,
-                    modifier = Modifier.fillMaxWidth()
+            // Permanent Data Protection Status Banner (Assures user that workers never disappear)
+            Surface(
+                color = WagesGreenLight,
+                tonalElevation = 1.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(
-                                Icons.Default.SettingsBackupRestore,
-                                contentDescription = null,
-                                tint = ConstructionGoldDark
-                            )
-                            Column {
-                                Text(
-                                    text = if (isMy) "ယခင် လုပ်သားအရန်ဒေတာ (${vault.workers.size} ဦး) တွေ့ရှိပါသည်" else "Previous Backup Found (${vault.workers.size} workers)",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 12.sp,
-                                    color = Slate900
-                                )
-                                Text(
-                                    text = if (isMy) "Uninstall ပြန်လုပ်ထားသော ဒေတာများကို တစ်ချက်နှိပ်ရယူနိုင်ပါသည်" else "Tap to restore previously entered workers",
-                                    fontSize = 10.sp,
-                                    color = Slate600
-                                )
-                            }
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Button(
-                                onClick = { viewModel.restoreFromDetectedVault() },
-                                colors = ButtonDefaults.buttonColors(containerColor = ConstructionGold),
-                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(if (isMy) "ပြန်ရယူမည်" else "Restore", fontSize = 11.sp, color = Slate900, fontWeight = FontWeight.Bold)
-                            }
-                            IconButton(
-                                onClick = { viewModel.dismissDetectedVaultBanner() },
-                                modifier = Modifier.size(28.dp)
-                            ) {
-                                Icon(Icons.Default.Close, contentDescription = "Dismiss", tint = Slate500, modifier = Modifier.size(16.dp))
-                            }
-                        }
-                    }
+                    Icon(
+                        Icons.Default.VerifiedUser,
+                        contentDescription = null,
+                        tint = WagesGreenDark,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = if (isMy)
+                            "လုပ်သားစာရင်း အမြဲတမ်း သိမ်းဆည်းပြီး (မဖျက်မချင်း မပျောက်ပျက်ဘဲ အမြဲရှိနေပါမည်)"
+                        else
+                            "Workforce Permanently Secured (Safe & never lost unless explicitly deleted)",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 11.sp,
+                        color = WagesGreenDark
+                    )
                 }
             }
 
@@ -342,14 +314,16 @@ fun WorkerMasterScreen(
                             modifier = Modifier.size(48.dp)
                         )
                         Text(
-                            text = if (isMy) "ကိုက်ညီသော လုပ်သားစာရင်း မတွေ့ပါ" else "No workers match criteria",
+                            text = if (isMy) "လုပ်သားစာရင်း မရှိသေးပါ" else "No workers registered yet",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = if (isMy) "'+ လုပ်သားအသစ် ထည့်မည်' ကိုနှိပ်၍ စာရင်းသွင်းပါ" else "Tap '+ Add Worker' to register a new construction worker.",
+                            text = if (isMy) "နမူနာလုပ်သားများ မထည့်ထားပါ။ မိမိ၏ လုပ်သားအစစ်များကို အောက်ပါ '+ လုပ်သားအသစ် ထည့်မည်' ခလုတ်ဖြင့် စတင်ထည့်သွင်းပါ"
+                                else "No sample workers added. Tap '+ Add Worker' to register your real workers.",
                             fontSize = 12.sp,
-                            color = Slate500
+                            color = Slate500,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                     }
                 }
@@ -384,6 +358,7 @@ fun WorkerMasterScreen(
             initialWorker = Worker(workerId = nextId, name = ""),
             isNew = true,
             existingWorkerTypes = existingWorkerTypes,
+            existingWorkerIds = workers.map { it.workerId },
             onDismiss = { showAddDialog = false },
             onSave = { newWorker ->
                 viewModel.addWorker(newWorker) {
@@ -395,10 +370,12 @@ fun WorkerMasterScreen(
 
     // Edit Worker Dialog
     if (editingWorker != null) {
+        val currentEditId = editingWorker!!.workerId
         WorkerFormDialog(
             initialWorker = editingWorker!!,
             isNew = false,
             existingWorkerTypes = existingWorkerTypes,
+            existingWorkerIds = workers.filter { it.workerId != currentEditId }.map { it.workerId },
             onDismiss = { editingWorker = null },
             onSave = { updated ->
                 viewModel.updateWorker(updated) {

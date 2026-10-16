@@ -35,8 +35,12 @@ class LabourRepository(
         attendanceDao.getRecordForDateAndWorker(date, workerId)
 
     suspend fun insertWorker(worker: Worker) = workerDao.insertWorker(worker)
+    suspend fun insertWorkers(workers: List<Worker>) = workerDao.insertWorkers(workers)
     suspend fun updateWorker(worker: Worker) = workerDao.updateWorker(worker)
     suspend fun deleteWorker(worker: Worker) = workerDao.deleteWorker(worker)
+    suspend fun clearAllWorkers() = workerDao.clearAllWorkers()
+    suspend fun deleteWorkersByIds(ids: List<String>) = workerDao.deleteWorkersByIds(ids)
+    suspend fun getAllWorkersList(): List<Worker> = workerDao.getAllWorkersList()
 
     suspend fun insertSite(site: Site) = siteDao.insertSite(site)
 

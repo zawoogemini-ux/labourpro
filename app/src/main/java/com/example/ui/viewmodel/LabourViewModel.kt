@@ -132,31 +132,31 @@ class LabourViewModel(application: Application) : AndroidViewModel(application) 
 
         allWorkers = repository.allWorkers.stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
+            SharingStarted.Eagerly,
             emptyList()
         )
 
         activeWorkers = repository.activeWorkers.stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
+            SharingStarted.Eagerly,
             emptyList()
         )
 
         allSites = repository.allSites.stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
+            SharingStarted.Eagerly,
             emptyList()
         )
 
         activeSites = repository.activeSites.stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
+            SharingStarted.Eagerly,
             emptyList()
         )
 
         allAttendance = repository.allAttendance.stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
+            SharingStarted.Eagerly,
             emptyList()
         )
 
@@ -173,20 +173,31 @@ class LabourViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
 
-        // Proactive persistent vault recovery check on app launch
+        // Non-destructive permanent worker sync on app launch:
+        // Guarantees NO sample workers exist, and only genuine user-entered workers are preserved
         viewModelScope.launch {
             try {
-                val vault = BackupManager.findExistingPersistentVault(application)
-                if (vault != null && vault.workers.isNotEmpty()) {
-                    val current = repository.allWorkers.first()
-                    if (current.isEmpty()) {
-                        repository.restoreData(vault, replaceExisting = true)
-                        _posForm.value = _posForm.value.copy(
-                            successMessage = "ယခင် အသုံးပြုခဲ့သော လုပ်သား (${vault.workers.size} ဦး) စာရင်းအား အလိုအလျောက် ပြန်လည်ရယူပြီးပါပြီ (Data restored from persistent vault)."
-                        )
-                    } else {
-                        _detectedPersistentVault.value = vault
+                // 1. Purge any sample workers from the database if they exist from prior runs
+                val currentDbWorkers = repository.getAllWorkersList()
+                val sampleWorkersInDb = currentDbWorkers.filter { com.example.data.local.SampleDataProvider.isSampleWorker(it) }
+                if (sampleWorkersInDb.isNotEmpty()) {
+                    for (sample in sampleWorkersInDb) {
+                        repository.deleteWorker(sample)
                     }
+                }
+
+                // 2. Filter out any sample workers from permanent storage
+                val permWorkers = com.example.util.PermanentWorkerStore.loadWorkers(application)
+                    ?.filterNot { com.example.data.local.SampleDataProvider.isSampleWorker(it) }
+
+                val cleanDbWorkers = repository.getAllWorkersList()
+                    .filterNot { com.example.data.local.SampleDataProvider.isSampleWorker(it) }
+
+                if (cleanDbWorkers.isEmpty() && !permWorkers.isNullOrEmpty()) {
+                    repository.insertWorkers(permWorkers)
+                    com.example.util.PermanentWorkerStore.saveWorkers(application, permWorkers)
+                } else {
+                    com.example.util.PermanentWorkerStore.saveWorkers(application, cleanDbWorkers)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -533,10 +544,12 @@ class LabourViewModel(application: Application) : AndroidViewModel(application) 
         _detectedPersistentVault.value = null
     }
 
-    // Worker Master actions
+    // Worker Master actions - 100% persistent, never lost unless explicitly deleted
     fun addWorker(worker: Worker, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             repository.insertWorker(worker)
+            val updated = repository.getAllWorkersList()
+            com.example.util.PermanentWorkerStore.saveWorkers(getApplication(), updated)
             triggerAutoVaultSave()
             onComplete()
         }
@@ -545,6 +558,8 @@ class LabourViewModel(application: Application) : AndroidViewModel(application) 
     fun updateWorker(worker: Worker, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             repository.updateWorker(worker)
+            val updated = repository.getAllWorkersList()
+            com.example.util.PermanentWorkerStore.saveWorkers(getApplication(), updated)
             triggerAutoVaultSave()
             onComplete()
         }
@@ -553,6 +568,8 @@ class LabourViewModel(application: Application) : AndroidViewModel(application) 
     fun deactivateWorker(worker: Worker, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             repository.updateWorker(worker.copy(status = "Inactive"))
+            val updated = repository.getAllWorkersList()
+            com.example.util.PermanentWorkerStore.saveWorkers(getApplication(), updated)
             triggerAutoVaultSave()
             onComplete()
         }
@@ -561,6 +578,8 @@ class LabourViewModel(application: Application) : AndroidViewModel(application) 
     fun reactivateWorker(worker: Worker, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             repository.updateWorker(worker.copy(status = "Active"))
+            val updated = repository.getAllWorkersList()
+            com.example.util.PermanentWorkerStore.saveWorkers(getApplication(), updated)
             triggerAutoVaultSave()
             onComplete()
         }
@@ -569,6 +588,8 @@ class LabourViewModel(application: Application) : AndroidViewModel(application) 
     fun deleteWorker(worker: Worker, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             repository.deleteWorker(worker)
+            val updated = repository.getAllWorkersList()
+            com.example.util.PermanentWorkerStore.saveWorkers(getApplication(), updated)
             triggerAutoVaultSave()
             onComplete()
         }

@@ -35,6 +35,7 @@ fun WorkerFormDialog(
     initialWorker: Worker,
     isNew: Boolean,
     existingWorkerTypes: List<String> = emptyList(),
+    existingWorkerIds: List<String> = emptyList(),
     onDismiss: () -> Unit,
     onSave: (Worker) -> Unit
 ) {
@@ -478,6 +479,10 @@ fun WorkerFormDialog(
                     }
                     if (workerId.isBlank()) {
                         Toast.makeText(context, "Worker ID ထည့်သွင်းပေးပါ", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (isNew && existingWorkerIds.any { it.equals(workerId.trim(), ignoreCase = true) }) {
+                        Toast.makeText(context, "ဤ Worker ID (${workerId.trim()}) ဖြင့် အခြားလုပ်သား ရှိနှင့်ပြီးဖြစ်ပါသည်! အခြား ID အသစ်တစ်ခု ထည့်သွင်းပါ", Toast.LENGTH_LONG).show()
                         return@Button
                     }
                     onSave(

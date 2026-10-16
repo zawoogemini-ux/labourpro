@@ -38,6 +38,9 @@ interface WorkerDao {
     @Query("DELETE FROM workers")
     suspend fun clearAllWorkers()
 
+    @Query("DELETE FROM workers WHERE workerId IN (:ids)")
+    suspend fun deleteWorkersByIds(ids: List<String>)
+
     @Query("SELECT * FROM workers ORDER BY LENGTH(workerId) ASC, workerId ASC")
     suspend fun getAllWorkersList(): List<Worker>
 }

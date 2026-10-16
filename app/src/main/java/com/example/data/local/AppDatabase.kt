@@ -69,26 +69,25 @@ abstract class AppDatabase : RoomDatabase() {
         ) : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
-                INSTANCE?.let { database ->
-                    scope.launch(Dispatchers.IO) {
+                scope.launch(Dispatchers.IO) {
+                    try {
+                        val database = getDatabase(context, scope)
                         populateDatabase(context, database)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                 }
             }
 
             suspend fun populateDatabase(context: Context, database: AppDatabase) {
-                // First: Check if a persistent backup vault exists on device (e.g. from prior install before uninstall)
-                val vault = BackupManager.findExistingPersistentVault(context)
-                if (vault != null && vault.workers.isNotEmpty()) {
-                    if (vault.sites.isNotEmpty()) database.siteDao().insertSites(vault.sites)
-                    database.workerDao().insertWorkers(vault.workers)
-                    if (vault.attendance.isNotEmpty()) database.attendanceDao().insertAttendanceList(vault.attendance)
-                } else {
-                    // First-time fresh install: insert default initial sample data
-                    database.workerDao().insertWorkers(SampleDataProvider.getInitialWorkers())
-                    database.siteDao().insertSites(SampleDataProvider.getInitialSites())
-                    database.attendanceDao().insertAttendanceList(SampleDataProvider.getInitialAttendance())
+                // Check if user has previously entered genuine workers
+                val savedWorkers = com.example.util.PermanentWorkerStore.loadWorkers(context)
+                val realWorkers = savedWorkers?.filterNot { SampleDataProvider.isSampleWorker(it) } ?: emptyList()
+                if (realWorkers.isNotEmpty()) {
+                    database.workerDao().insertWorkers(realWorkers)
                 }
+                // Do not add sample workers
+                database.siteDao().insertSites(SampleDataProvider.getInitialSites())
             }
         }
     }

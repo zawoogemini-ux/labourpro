@@ -1518,16 +1518,39 @@ fun AttendanceEntryPosScreen(
                     }.sortedWith { a, b -> com.example.data.model.compareWorkerIds(a.workerId, b.workerId) }
 
                     if (filteredWorkers.isEmpty()) {
-                        Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
                             Text(
                                 text = if (currentLanguage == AppLanguage.MYANMAR) {
-                                    if (filterUnmarkedOnly) "ယနေ့အတွက် အားလုံး စာရင်းသွင်းပြီးဖြစ်ပါသည်!" else "လုပ်သား မတွေ့ရှိပါ"
+                                    if (activeWorkers.isEmpty()) "လုပ်သားစာရင်း မရှိသေးပါ (နမူနာများ မထည့်ထားပါ)"
+                                    else if (filterUnmarkedOnly) "ယနေ့အတွက် အားလုံး စာရင်းသွင်းပြီးဖြစ်ပါသည်!"
+                                    else "လုပ်သား မတွေ့ရှိပါ"
                                 } else {
-                                    if (filterUnmarkedOnly) "All workers are already marked for today!" else "No matching workers found"
+                                    if (activeWorkers.isEmpty()) "No workers registered yet (No sample workers)"
+                                    else if (filterUnmarkedOnly) "All workers are already marked for today!"
+                                    else "No matching workers found"
                                 },
                                 color = Slate500,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                fontSize = 13.sp
                             )
+                            if (activeWorkers.isEmpty()) {
+                                Button(
+                                    onClick = {
+                                        showWorkerDialog = false
+                                        viewModel.navigateTo(AppScreen.WORKER_MASTER)
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = ConstructionGold),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Icon(Icons.Default.PersonAdd, contentDescription = null, tint = Slate900, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(if (currentLanguage == AppLanguage.MYANMAR) "လုပ်သားအသစ် ထည့်မည်" else "Add Worker", color = Slate900, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
+                            }
                         }
                     } else {
                         LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp)) {

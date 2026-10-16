@@ -121,20 +121,6 @@ fun MainAppRoot(viewModel: LabourViewModel = viewModel()) {
                         )
                     }
 
-                    // Quick Clear Sample Data Icon Action
-                    IconButton(
-                        onClick = { showClearSampleDialog = true },
-                        modifier = Modifier
-                            .size(48.dp)
-                            .testTag("topbar_clear_sample_action")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DeleteSweep,
-                            contentDescription = "Clear Sample Data",
-                            tint = AdvanceRed
-                        )
-                    }
-
                     // Quick In-App Language Switcher Chip (English / မြန်မာ)
                     Surface(
                         modifier = Modifier
